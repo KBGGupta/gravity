@@ -1,10 +1,26 @@
 import subprocess
 import os
+import shutil
+
+def find_git_binary():
+    git_bin = shutil.which("git")
+    if git_bin:
+        return git_bin
+    for candidate in [
+        r"C:\Program Files\Git\cmd\git.exe",
+        r"C:\Program Files\Git\bin\git.exe",
+        r"C:\Program Files (x86)\Git\cmd\git.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Programs\Git\cmd\git.exe")
+    ]:
+        if os.path.exists(candidate):
+            return candidate
+    return "git"
 
 def run_git(args: list, cwd: str) -> str:
     try:
+        git_cmd = find_git_binary()
         res = subprocess.run(
-            ["git"] + args,
+            [git_cmd] + args,
             cwd=cwd,
             capture_output=True,
             text=True,
