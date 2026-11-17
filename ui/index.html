@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Devi Gravity</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- LEFT SIDEBAR (Devi Gravity) -->
+    <aside class="sidebar" role="navigation" aria-label="Main Navigation">
+      <div class="sidebar-brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-details">
+          <span class="brand-title">Devi Gravity</span>
+          <span class="brand-subtitle">Autonomous Code Agent</span>
+        </div>
+      </div>
+
+      <div class="workspace-card" role="region" aria-label="Active Workspace">
+        <div class="ws-label">ACTIVE WORKSPACE</div>
+        <div class="ws-path" id="wsPathDisplay" title="Current Workspace">Loading...</div>
+        <button id="btnChangeWorkspace" class="btn-subtle" aria-label="Change workspace directory" title="Open directory picker (Ctrl+O)">
+          📂 Change Folder
+        </button>
+      </div>
+
+      <nav class="nav-menu" role="tablist" aria-label="Views">
+        <button class="nav-item active" id="tabChat" role="tab" aria-selected="true" aria-controls="viewChat" data-view="chat">
+          <span class="nav-icon">💬</span>
+          <span class="nav-label">Chat & Agent</span>
+          <span class="nav-shortcut">Alt+1</span>
+        </button>
+        <button class="nav-item" id="tabFiles" role="tab" aria-selected="false" aria-controls="viewFiles" data-view="files">
+          <span class="nav-icon">📁</span>
+          <span class="nav-label">Workspace Files</span>
+          <span class="nav-shortcut">Alt+2</span>
+        </button>
+        <button class="nav-item" id="tabGit" role="tab" aria-selected="false" aria-controls="viewGit" data-view="git">
+          <span class="nav-icon">🌿</span>
+          <span class="nav-label">Git Repository</span>
+          <span class="nav-shortcut">Alt+3</span>
+        </button>
+        <button class="nav-item" id="tabDb" role="tab" aria-selected="false" aria-controls="viewDb" data-view="db">
+          <span class="nav-icon">🗄️</span>
+          <span class="nav-label">Database (SQLite)</span>
+          <span class="nav-shortcut">Alt+4</span>
+        </button>
+        <button class="nav-item" id="tabSettings" role="tab" aria-selected="false" aria-controls="viewSettings" data-view="settings">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Settings & Keys</span>
+          <span class="nav-shortcut">Alt+5</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-pill" id="agentStatusPill" role="status" aria-live="polite">
+          <span class="status-dot ready" id="statusDot"></span>
+          <span class="status-text" id="statusText">Ready</span>
+        </div>
+        <div class="model-badge" id="modelBadge">Ollama</div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+      <!-- TOP HEADER -->
+      <header class="top-header" role="banner">
+        <div class="header-left">
+          <h1 class="header-title" id="viewHeaderTitle">Agent Chat Canvas</h1>
+          <span class="shortcut-pill" title="NVDA Screen reader fully supported">Accessibility Active</span>
+        </div>
+        <div class="header-actions">
+          <button id="btnClearChat" class="btn-secondary" aria-label="Clear chat conversation (Ctrl+L)" title="Clear conversation (Ctrl+L)">
+            🧹 Clear Chat
+          </button>
+          <button id="btnHelp" class="btn-secondary" aria-label="Keyboard Shortcuts (F1)" title="Keyboard Shortcuts (F1)">
+            ⌨️ Shortcuts
+          </button>
+        </div>
+      </header>
+
+      <!-- VIEW 1: CHAT CANVAS -->
+      <section id="viewChat" class="view-panel active" role="tabpanel" aria-labelledby="tabChat">
+        <div class="chat-scroll" id="chatScroll" role="log" aria-live="polite" aria-label="Chat and agent tool execution log" tabindex="0">
+          <!-- Welcome Message -->
+          <div class="msg-card agent-card">
+            <div class="msg-header">
+              <span class="msg-avatar">⚡</span>
+              <span class="msg-author">Devi Gravity</span>
+              <span class="msg-time">System</span>
+            </div>
+            <div class="msg-body">
+              <p>Namaste! I am <strong>Devi Gravity</strong>, your Autonomous Code Agent.</p>
+              <p>I can edit code, inspect git repos, run database queries, and execute terminal commands. Full NVDA accessibility is enabled.</p>
+              <div class="quick-chips">
+                <button class="chip" onclick="setInputPrompt('List all files in this workspace')">📁 List Files</button>
+                <button class="chip" onclick="setInputPrompt('Check git status and recent commits')">🌿 Git Status</button>
+                <button class="chip" onclick="setInputPrompt('Inspect database tables in test.db')">🗄️ Database Tables</button>
+                <button class="chip" onclick="setInputPrompt('Search online technical docs for python sqlite best practices')">🌐 Search Web Docs</button>
+                <button class="chip" onclick="setInputPrompt('Create a python script hello.py that prints Hello World and test it')">🐍 Create & Run Script</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FLOATING PROMPT INPUT BOX (Antigravity Style) -->
+        <div class="input-container">
+          <div class="slash-commands-bar" aria-label="Quick Commands">
+            <span class="slash-hint">Quick Actions:</span>
+            <button class="slash-btn" onclick="triggerQuickAction('git_status')">/git-status</button>
+            <button class="slash-btn" onclick="triggerQuickAction('list_files')">/files</button>
+            <button class="slash-btn" onclick="triggerQuickAction('list_db')">/database</button>
+            <button class="slash-btn" onclick="triggerQuickAction('clear')">/clear</button>
+          </div>
+          <div class="input-card">
+            <textarea
+              id="promptInput"
+              class="prompt-textarea"
+              placeholder="Ask Antigravity Agent to write code, fix bugs, inspect git, or run SQL... (Ctrl+Enter to send, F6 for Chat)"
+              rows="3"
+              aria-label="Agent instruction prompt input"
+            ></textarea>
+            <div class="input-bottom-bar">
+              <span class="input-hint">Press <strong>Ctrl + Enter</strong> to send | <strong>F6</strong> to toggle Chat history</span>
+              <div class="input-actions">
+                <button id="btnStop" class="btn-danger" disabled aria-label="Stop running agent (Escape)">
+                  🛑 Stop
+                </button>
+                <button id="btnSend" class="btn-primary" aria-label="Send prompt to agent (Ctrl+Enter)">
+                  Send ➔
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: WORKSPACE FILES -->
+      <section id="viewFiles" class="view-panel" role="tabpanel" aria-labelledby="tabFiles" hidden>
+        <div class="panel-content">
+          <div class="panel-header-row">
+            <h2>Workspace Explorer</h2>
+            <button class="btn-secondary" onclick="loadFiles()">🔄 Refresh</button>
+          </div>
+          <div id="fileListContainer" class="file-list-box" tabindex="0" role="region" aria-label="Workspace file list">
+            <p>Loading files...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: GIT REPOSITORY -->
+      <section id="viewGit" class="view-panel" role="tabpanel" aria-labelledby="tabGit" hidden>
+        <div class="panel-content">
+          <div class="panel-header-row">
+            <h2>Git Repository Operations</h2>
+            <div class="action-btn-group">
+              <button class="btn-secondary" onclick="fetchGitStatus()">Status</button>
+              <button class="btn-secondary" onclick="fetchGitDiff()">Diff</button>
+              <button class="btn-secondary" onclick="fetchGitLog()">Recent Commits</button>
+            </div>
+          </div>
+          <div class="git-commit-form">
+            <input type="text" id="gitCommitMsg" placeholder="Commit message..." aria-label="Git commit message" />
+            <button class="btn-primary" onclick="commitGitChanges()">Stage & Commit</button>
+          </div>
+          <div id="gitOutputBox" class="code-preview-box" tabindex="0" role="region" aria-label="Git output viewer">
+            Click Status, Diff, or Recent Commits above to inspect the repository.
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: DATABASE (SQLite) -->
+      <section id="viewDb" class="view-panel" role="tabpanel" aria-labelledby="tabDb" hidden>
+        <div class="panel-content">
+          <div class="panel-header-row">
+            <h2>Database (SQLite) Explorer</h2>
+            <div class="db-path-picker">
+              <label for="dbFilePathInput">DB File:</label>
+              <input type="text" id="dbFilePathInput" value="test.db" aria-label="SQLite database file name" />
+              <button class="btn-secondary" onclick="fetchDbTables()">List Tables</button>
+            </div>
+          </div>
+          <div class="sql-query-bar">
+            <input type="text" id="sqlQueryInput" placeholder="Enter SQL Query (e.g. SELECT * FROM users;)" aria-label="SQL query input" />
+            <button class="btn-primary" onclick="runSqlQuery()">Execute SQL</button>
+          </div>
+          <div id="dbOutputBox" class="code-preview-box" tabindex="0" role="region" aria-label="Database results viewer">
+            Enter a database file name and click 'List Tables' or run an SQL query.
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 5: SETTINGS & KEYS -->
+      <section id="viewSettings" class="view-panel" role="tabpanel" aria-labelledby="tabSettings" hidden>
+        <div class="panel-content settings-form">
+          <h2>Agent Settings & AI Model Configuration</h2>
+          <p class="settings-subtitle">Zero Google Login Hassle: Use Local Ollama (100% Free & Offline) or Direct Cloud API Keys.</p>
+
+          <div class="form-group">
+            <label for="selProvider">AI Provider:</label>
+            <select id="selProvider" onchange="onProviderSelectChange()">
+              <option value="ollama">Ollama (100% Free / Local PC / No Key / Offline)</option>
+              <option value="copilot">GitHub Copilot (GitHub Token / GPT-4o)</option>
+              <option value="gemini">Google Gemini (Simple API Key - No Browser Login)</option>
+              <option value="groq">Groq Cloud (Ultra Fast Llama 3.3)</option>
+              <option value="openrouter">OpenRouter (DeepSeek / Llama Free Models)</option>
+              <option value="openai_compatible">Custom OpenAI Compatible Server</option>
+              <option value="demo">Demo Mode (Built-in Heuristic Mode)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="txtModelName">Model Name:</label>
+            <input type="text" id="txtModelName" value="qwen2.5-coder" />
+          </div>
+
+          <div class="form-group">
+            <label for="txtApiKey">API Key (Not needed for Ollama or Demo):</label>
+            <input type="password" id="txtApiKey" placeholder="Paste your API key here..." />
+          </div>
+
+          <div class="form-group">
+            <label for="txtBaseUrl">Base URL:</label>
+            <input type="text" id="txtBaseUrl" value="http://localhost:11434/v1" />
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="chkVoiceFeedback" checked />
+              Announce status & tool actions to NVDA / Screen Reader (Audio Voice)
+            </label>
+          </div>
+
+          <div class="form-actions settings-buttons-row">
+            <button class="btn-primary" onclick="saveSettings()" aria-label="Save current settings">💾 Save Settings</button>
+            <button class="btn-secondary btn-reset" onclick="resetSettingsToDefault()" aria-label="Reset settings to default Ollama model" title="Reset all settings to default Ollama configuration">
+              🔄 Reset to Default (Ollama)
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- SHORTCUTS MODAL -->
+  <dialog id="shortcutsModal" class="modal-dialog" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <h3 id="modalTitle">Accessible Keyboard Shortcuts</h3>
+      <button class="btn-close" onclick="closeShortcutsModal()" aria-label="Close shortcuts dialog">✕</button>
+    </div>
+    <div class="modal-body">
+      <ul class="shortcuts-list">
+        <li><kbd>Ctrl</kbd> + <kbd>Enter</kbd> : Send prompt to Agent</li>
+        <li><kbd>Escape</kbd> : Stop running Agent</li>
+        <li><kbd>F6</kbd> : Switch focus between Prompt Input & Chat History</li>
+        <li><kbd>Alt</kbd> + <kbd>1</kbd> : Switch to Chat & Agent Canvas</li>
+        <li><kbd>Alt</kbd> + <kbd>2</kbd> : Switch to Workspace Files</li>
+        <li><kbd>Alt</kbd> + <kbd>3</kbd> : Switch to Git Repository</li>
+        <li><kbd>Alt</kbd> + <kbd>4</kbd> : Switch to Database (SQLite)</li>
+        <li><kbd>Alt</kbd> + <kbd>5</kbd> : Switch to Settings & Keys</li>
+        <li><kbd>Ctrl</kbd> + <kbd>O</kbd> : Change Workspace Folder</li>
+        <li><kbd>Ctrl</kbd> + <kbd>L</kbd> : Clear Chat Conversation</li>
+        <li><kbd>F1</kbd> : Open this Keyboard Shortcuts dialog</li>
+      </ul>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

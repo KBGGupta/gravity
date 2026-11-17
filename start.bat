@@ -1,0 +1,9 @@
+@echo off
+title Devi Gravity - Starting...
+echo Starting Devi Gravity - Autonomous Code Agent for NVDA Screen Reader...
+python app.py
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo An error occurred. Press any key to exit...
+    pause >nul
+)
